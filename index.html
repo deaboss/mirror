@@ -36,7 +36,7 @@
       overflow:hidden;
     }
 
-    /* Layout: tall usage, limited width */
+    /* Layout */
     .wrap{
       height:100%;
       box-sizing:border-box;
@@ -54,14 +54,15 @@
       gap:18px;
     }
 
+    /* Clock: bigger + thinner */
     .clock{
-      font-size:clamp(52px, 6.2vh, 82px);
-      font-weight:600;
-      line-height:1.02;
+      font-size:clamp(70px, 8.0vh, 110px);
+      font-weight:300;
+      line-height:1.0;
       letter-spacing:-0.02em;
     }
     .date{
-      margin-top:8px;
+      margin-top:10px;
       font-size:clamp(16px, 2.0vh, 22px);
       font-weight:500;
       color:var(--sub);
@@ -73,6 +74,7 @@
       display:flex;
       align-items:flex-start;
       justify-content:flex-start;
+      margin-left:24px; /* bump widget right */
     }
     .wxLeft{
       display:flex;
@@ -95,10 +97,16 @@
     /* Temp + (icon/hi-lo) on one line */
     .wxTempRow{
       display:flex;
-      align-items:baseline;
+      align-items:flex-start;
       gap:18px;
       flex-wrap:nowrap;
       width:100%;
+    }
+    .wxTempStack{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      flex:0 0 auto;
     }
     .wxTemp{
       font-size:clamp(52px, 6.6vh, 88px);
@@ -107,7 +115,12 @@
       letter-spacing:-0.03em;
       color:var(--text);
       white-space:nowrap;
-      flex:0 0 auto;
+    }
+    .wxDesc{
+      font-size:clamp(14px, 1.7vh, 20px);
+      color:var(--sub);
+      line-height:1.2;
+      max-width:44ch;
     }
 
     .wxRight{
@@ -117,6 +130,7 @@
       gap:10px;
       flex:0 0 auto;
       min-width:0;
+      padding-top:6px;
     }
     .wxIcon{
       width:clamp(44px, 5.0vh, 64px);
@@ -134,18 +148,13 @@
     }
     .wxHiLo strong{ color:var(--text); font-weight:600; }
 
-    .wxDesc{
-      font-size:clamp(16px, 2.0vh, 22px);
-      color:var(--sub);
-      line-height:1.2;
-      max-width:44ch;
-    }
     .wxUpdated{
       font-size:clamp(12px, 1.5vh, 16px);
       color:var(--sub2);
     }
 
-    .spacer{ height:200px; width:100%; }
+    /* Spacer between weather and graphs */
+    .spacer{ height:250px; width:100%; }
 
     /* Graphs */
     .graph{ width:100%; }
@@ -179,11 +188,11 @@
       display:block;
     }
 
-    /* Satellite: square */
+    /* Satellite */
     .sat{ width:100%; }
     .sat img{
       width:100%;
-      aspect-ratio:1 / 1;
+      aspect-ratio: 1 / 0.8; /* requested */
       height:auto;
       object-fit:cover;
       display:block;
@@ -191,15 +200,14 @@
       opacity:0.92;
       filter:contrast(1.05) saturate(1.05);
       background:#111;
-      max-height:360px; /* keeps it from getting huge */
+      max-height:420px;
     }
 
     @media (max-height: 760px){
       .wrap{ padding:34px 38px; }
       .col{ gap:14px; }
-      .spacer{ height:18px; }
       svg{ height:78px; }
-      .sat img{ max-height:260px; }
+      .sat img{ max-height:300px; }
     }
     @media (max-height: 680px){
       .sat{ display:none; }
@@ -221,7 +229,10 @@
             <div class="wxLoc">San Luis Obispo, CA</div>
 
             <div class="wxTempRow">
-              <div id="wxTemp" class="wxTemp">--°</div>
+              <div class="wxTempStack">
+                <div id="wxTemp" class="wxTemp">--°</div>
+                <div id="wxDesc" class="wxDesc">Loading weather…</div>
+              </div>
 
               <div class="wxRight">
                 <div id="wxIcon" class="wxIcon" aria-label="Weather icon"></div>
@@ -232,7 +243,6 @@
               </div>
             </div>
 
-            <div id="wxDesc" class="wxDesc">Loading weather…</div>
             <div id="wxUpdated" class="wxUpdated"></div>
           </div>
         </div>
@@ -584,4 +594,3 @@
   </script>
 </body>
 </html>
-
