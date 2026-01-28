@@ -21,15 +21,13 @@
       font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
       overflow:hidden;
     }
-
-    /* Hide cursor after inactivity */
     body.cursor-hidden{ cursor:none; }
 
     /* Rotate whole UI 90° counter-clockwise */
     .rot{
       position:fixed;
       top:0; left:0;
-      width:100vh;   /* swap because rotated */
+      width:100vh;
       height:100vw;
       transform-origin: top left;
       transform: rotate(-90deg) translateX(-100%);
@@ -37,18 +35,18 @@
       overflow:hidden;
     }
 
-    /* Left column constrained (good for 1080x1920 before rotation) */
+    /* Left-aligned column that stays narrow (so it won't span the rotated screen) */
     .wrap{
       height:100%;
       box-sizing:border-box;
-      padding:28px;
+      padding:28px 28px 22px 28px;
       display:flex;
       align-items:flex-start;
       justify-content:flex-start;
     }
     .col{
-      width:min(520px, 46vw);
-      max-width:520px;
+      width: min(360px, 30vw);     /* narrower */
+      max-width: 360px;
       display:flex;
       flex-direction:column;
       align-items:flex-start;
@@ -57,7 +55,7 @@
 
     /* Time */
     .clock{
-      font-size:clamp(34px, 3.6vw, 54px);
+      font-size:clamp(32px, 3.2vw, 48px);
       font-weight:600;
       line-height:1.05;
       letter-spacing:-0.02em;
@@ -65,7 +63,7 @@
     }
     .date{
       margin-top:6px;
-      font-size:clamp(13px, 1.4vw, 17px);
+      font-size:clamp(12px, 1.3vw, 16px);
       font-weight:500;
       color:var(--sub);
       text-align:left;
@@ -77,7 +75,7 @@
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
-      gap:14px;
+      gap:12px;
     }
     .wxLeft{
       display:flex;
@@ -86,7 +84,7 @@
       min-width:0;
     }
     .wxLoc{
-      font-size:12px;
+      font-size:11px;
       letter-spacing:0.10em;
       text-transform:uppercase;
       color:var(--sub);
@@ -96,20 +94,20 @@
       max-width:100%;
     }
     .wxTemp{
-      font-size:clamp(42px, 4.2vw, 64px);
+      font-size:clamp(36px, 3.8vw, 54px);
       font-weight:650;
       line-height:1.0;
       letter-spacing:-0.03em;
       color:var(--text);
     }
     .wxDesc{
-      font-size:14px;
+      font-size:13px;
       color:var(--sub);
       line-height:1.2;
-      max-width:42ch;
+      max-width:34ch;
     }
     .wxUpdated{
-      font-size:12px;
+      font-size:11px;
       color:var(--sub2);
     }
     .wxRight{
@@ -120,8 +118,8 @@
       flex:0 0 auto;
     }
     .wxIcon{
-      width:44px;
-      height:44px;
+      width:36px;   /* smaller */
+      height:36px;
       opacity:0.95;
     }
     .wxHiLo{
@@ -129,7 +127,7 @@
       flex-direction:column;
       align-items:flex-end;
       gap:3px;
-      font-size:13px;
+      font-size:12px;
       color:var(--sub);
       letter-spacing:0.01em;
     }
@@ -138,11 +136,14 @@
       font-weight:600;
     }
 
-    /* Graphs */
-    .graph{
+    /* Space between top widget and graphs */
+    .spacer{
+      height:14px; /* increase/decrease to taste */
       width:100%;
-      margin-top:6px;
     }
+
+    /* Graphs */
+    .graph{ width:100%; }
     .graphHeader{
       width:100%;
       display:flex;
@@ -152,13 +153,13 @@
       margin-bottom:6px;
     }
     .graphLabel{
-      font-size:11px;
+      font-size:10px;
       letter-spacing:0.10em;
       text-transform:uppercase;
       color:var(--sub);
     }
     .graphMeta{
-      font-size:11px;
+      font-size:10px;
       color:var(--sub2);
       white-space:nowrap;
       overflow:hidden;
@@ -166,16 +167,13 @@
       max-width:55%;
       text-align:right;
     }
-    svg{width:100%;height:78px;display:block}
+    svg{ width:100%; height:70px; display:block; } /* smaller */
 
     /* Satellite */
-    .sat{
-      width:100%;
-      margin-top:6px;
-    }
+    .sat{ width:100%; }
     .sat img{
       width:100%;
-      height:240px;
+      height:200px;       /* smaller */
       object-fit:cover;
       display:block;
       border-radius:12px;
@@ -184,8 +182,9 @@
     }
 
     @media (max-height: 850px){
-      svg{height:70px;}
-      .sat img{height:200px;}
+      svg{height:62px;}
+      .sat img{height:170px;}
+      .spacer{height:10px;}
     }
     @media (max-height: 720px){
       .sat{display:none;}
@@ -217,6 +216,8 @@
             </div>
           </div>
         </div>
+
+        <div class="spacer"></div>
 
         <div class="graph">
           <div class="graphHeader">
@@ -256,7 +257,6 @@
     const REFRESH_MINUTES = 5;
     const CURSOR_HIDE_MS = 1500;
 
-    // San Luis Obispo coords
     const LAT = 35.2858;
     const LON = -120.6627;
     const HOURS_TO_PLOT = 24;
@@ -316,7 +316,7 @@
       return document.createElementNS("http://www.w3.org/2000/svg", name);
     }
 
-    // ===== Weather icons =====
+    // ===== Minimal weather icons =====
     function iconSvg(kind){
       const common = `fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"`;
       if(kind === "sun"){
@@ -507,7 +507,7 @@
 
         const p0 = periods[0];
 
-        // widget
+        // Widget
         document.getElementById("wxTemp").textContent = `${p0.temperature}°`;
         document.getElementById("wxDesc").textContent = p0.shortForecast || "";
         document.getElementById("wxUpdated").textContent =
@@ -519,7 +519,7 @@
 
         document.getElementById("wxIcon").innerHTML = iconSvg(pickIcon(p0.shortForecast));
 
-        // graphs
+        // Graphs
         const xLabels = periods.map(p => hourLabel(p.startTime));
         const temps = periods.map(p => Number.isFinite(p.temperature) ? p.temperature : null);
         const winds = periods.map(p => parseWindMph(p.windSpeed));
