@@ -9,8 +9,6 @@
       --bg:#000000;
       --fg:#ffffff;
       --grid:rgba(255,255,255,0.12);
-      --card:rgba(255,255,255,0.04);
-      --border:rgba(255,255,255,0.12);
     }
     html,body{height:100%}
     body{
@@ -20,155 +18,164 @@
       font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
       overflow:hidden;
     }
+
     .wrap{
       height:100%;
-      display:grid;
-      grid-template-rows:auto auto 1fr;
-      gap:14px;
-      padding:28px;
       box-sizing:border-box;
-    }
-    .top{
+      padding:28px 28px 22px 28px;
       display:flex;
-      justify-content:space-between;
+      justify-content:flex-start;
       align-items:flex-start;
-      gap:24px;
     }
-    .time{display:flex;flex-direction:column;gap:6px;line-height:1.05;letter-spacing:-0.02em}
-    .clock{font-size:clamp(44px,6vw,92px);font-weight:600}
-    .date{font-size:clamp(18px,2vw,26px);font-weight:500}
-
-    .weather{
-      text-align:right;
+    .col{
+      width:min(560px, 56vw);
       display:flex;
       flex-direction:column;
-      gap:6px;
-      max-width:45vw;
+      gap:14px;
     }
-    .weather .loc{
-      font-size:14px;
-      letter-spacing:0.06em;
+
+    .clock{
+      font-size:clamp(40px, 4vw, 64px);
+      font-weight:600;
+      line-height:1.05;
+      letter-spacing:-0.02em;
+    }
+    .date{
+      margin-top:6px;
+      font-size:clamp(14px, 1.5vw, 18px);
+      font-weight:500;
+      opacity:0.95;
+    }
+
+    .weather{display:flex;flex-direction:column;gap:6px}
+    .loc{
+      font-size:11px;
+      letter-spacing:0.10em;
       text-transform:uppercase;
+      opacity:0.9;
     }
-    .weather .main{
-      font-size:clamp(18px,2.2vw,28px);
+    .wxMain{
+      font-size:clamp(16px, 1.8vw, 22px);
       font-weight:600;
       letter-spacing:-0.01em;
+      line-height:1.2;
     }
-    .weather .sub{font-size:14px}
+    .wxSub{font-size:13px;opacity:0.9}
 
-    .graphs{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:10px;
-    }
-    .graphCard{
-      border-radius:16px;
-      border:1px solid var(--border);
-      background:var(--card);
-      padding:12px 14px;
-    }
+    .graph{margin-top:6px}
     .graphHeader{
       display:flex;
       justify-content:space-between;
       align-items:baseline;
       gap:12px;
-      margin-bottom:8px;
+      margin-bottom:6px;
     }
-    .graphTitle{
-      font-size:12px;
-      letter-spacing:0.08em;
+    .graphLabel{
+      font-size:11px;
+      letter-spacing:0.10em;
       text-transform:uppercase;
-      color:var(--fg);
+      opacity:0.9;
     }
     .graphMeta{
-      font-size:12px;
-      color:var(--fg);
+      font-size:11px;
+      opacity:0.75;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      max-width:60%;
-      text-align:right;
+      max-width:55%;
     }
-    svg{width:100%;height:72px;display:block}
+
+    svg{width:100%;height:92px;display:block} /* taller to fit axes */
+    .axisText{
+      fill:#ffffff;
+      opacity:0.85;
+      font-size:18px; /* in SVG viewBox units */
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    }
+    .axisLine{stroke:rgba(255,255,255,0.14);stroke-width:2}
+    .gridLine{stroke:rgba(255,255,255,0.10);stroke-width:2}
+    .dataLine{fill:none;stroke:#ffffff;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
 
     .sat{
+      margin-top:4px;
       width:100%;
-      height:100%;
-      border-radius:16px;
+      border-radius:14px;
       overflow:hidden;
-      border:1px solid var(--border);
     }
     .sat img{
       width:100%;
-      height:100%;
-      object-fit:cover;
+      height:auto;
       display:block;
+      object-fit:cover;
+      opacity:0.92;
       filter:contrast(1.05) saturate(1.05);
-      opacity:0.95;
+    }
+
+    @media (max-height: 900px){
+      .col{ gap:10px; }
+      svg{ height:84px; }
+      .sat img{ max-height: 340px; object-fit:cover; }
+    }
+    @media (max-height: 750px){
+      .sat{ display:none; }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="top">
-      <div class="time">
+    <div class="col">
+      <div>
         <div id="clock" class="clock">--:--</div>
         <div id="date" class="date">---</div>
       </div>
 
       <div class="weather">
         <div class="loc">San Luis Obispo, CA</div>
-        <div id="wxMain" class="main">Loading weather…</div>
-        <div id="wxSub" class="sub"></div>
+        <div id="wxMain" class="wxMain">Loading weather…</div>
+        <div id="wxSub" class="wxSub"></div>
       </div>
-    </div>
 
-    <div class="graphs">
-      <div class="graphCard">
+      <div class="graph">
         <div class="graphHeader">
-          <div class="graphTitle">Temperature (hourly)</div>
+          <div class="graphLabel">Temperature (°F)</div>
           <div id="tempMeta" class="graphMeta"></div>
         </div>
-        <svg id="tempSvg" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-label="Temperature graph"></svg>
+        <svg id="tempSvg" viewBox="0 0 1000 170" preserveAspectRatio="none" aria-label="Temperature graph"></svg>
       </div>
 
-      <div class="graphCard">
+      <div class="graph">
         <div class="graphHeader">
-          <div class="graphTitle">Surface wind (hourly)</div>
+          <div class="graphLabel">Surface wind (mph)</div>
           <div id="windMeta" class="graphMeta"></div>
         </div>
-        <svg id="windSvg" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-label="Wind graph"></svg>
+        <svg id="windSvg" viewBox="0 0 1000 170" preserveAspectRatio="none" aria-label="Wind graph"></svg>
       </div>
 
-      <div class="graphCard" id="rainCard" style="display:none">
+      <div class="graph" id="rainWrap" style="display:none">
         <div class="graphHeader">
-          <div class="graphTitle">Rain chance (hourly)</div>
+          <div class="graphLabel">Rain chance (%)</div>
           <div id="rainMeta" class="graphMeta"></div>
         </div>
-        <svg id="rainSvg" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-label="Rain chance graph"></svg>
+        <svg id="rainSvg" viewBox="0 0 1000 170" preserveAspectRatio="none" aria-label="Rain chance graph"></svg>
       </div>
-    </div>
 
-    <div class="sat">
-      <img id="satImg"
-           alt="GOES-18 Satellite"
-           src="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg" />
+      <div class="sat">
+        <img id="satImg"
+             alt="GOES-18 Satellite"
+             src="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg" />
+      </div>
     </div>
   </div>
 
   <script>
-    // Full page refresh interval (minutes)
     const REFRESH_MINUTES = 5;
 
     // Coords from your NWS link
     const LAT = 35.2858;
     const LON = -120.6627;
 
-    // How many hours to plot
     const HOURS_TO_PLOT = 24;
 
-    // Satellite image (cache-busted in JS)
     const satBaseUrl = "https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg";
 
     function pad2(n){ return String(n).padStart(2,"0"); }
@@ -182,11 +189,11 @@
     }
 
     function bustSatelliteCache(){
-      document.getElementById("satImg").src = `${satBaseUrl}?t=${Date.now()}`;
+      const img = document.getElementById("satImg");
+      if (img) img.src = `${satBaseUrl}?t=${Date.now()}`;
     }
 
     function parseWindMph(windSpeedStr){
-      // Examples: "5 mph", "5 to 10 mph", "10 mph"
       if(!windSpeedStr) return null;
       const nums = windSpeedStr.match(/\d+/g);
       if(!nums || nums.length === 0) return null;
@@ -198,62 +205,126 @@
       return Number.isFinite(a) ? a : null;
     }
 
-    function formatHourLabel(iso){
+    function hourLabel(iso){
       const d = new Date(iso);
-      return d.toLocaleTimeString([], { hour:"numeric" });
+      // "3p", "6p", "9p", ...
+      const h = d.getHours();
+      const hr = ((h + 11) % 12) + 1;
+      const ap = h < 12 ? "a" : "p";
+      return `${hr}${ap}`;
     }
 
-    function drawLineGraph(svgEl, data, stroke){
-      const W=1000,H=120,padX=18,padY=14;
-      const innerW=W-padX*2, innerH=H-padY*2;
+    function makeSvgEl(name){
+      return document.createElementNS("http://www.w3.org/2000/svg", name);
+    }
+
+    function drawLineGraphWithAxes(svgEl, data, labels, yUnit, stroke){
+      // SVG coordinate space
+      const W = 1000, H = 170;
+      const padL = 62, padR = 16, padT = 14, padB = 46;  // bottom room for x labels
+      const innerW = W - padL - padR;
+      const innerH = H - padT - padB;
 
       svgEl.innerHTML = "";
 
       const clean = data.filter(v => Number.isFinite(v));
       if(clean.length < 2){
-        const t = document.createElementNS("http://www.w3.org/2000/svg","text");
+        const t = makeSvgEl("text");
         t.setAttribute("x", W/2);
         t.setAttribute("y", H/2);
-        t.setAttribute("fill", "#ffffff");
-        t.setAttribute("font-size", "18");
+        t.setAttribute("class", "axisText");
         t.setAttribute("text-anchor", "middle");
         t.textContent = "No data";
         svgEl.appendChild(t);
         return;
       }
 
-      let min=Math.min(...clean), max=Math.max(...clean);
-      if(min===max){ min-=1; max+=1; }
-      const xStep = innerW / (data.length - 1);
+      let min = Math.min(...clean);
+      let max = Math.max(...clean);
+      if(min === max){ min -= 1; max += 1; }
 
-      // grid
-      for(const frac of [0.33,0.66]){
-        const y = padY + innerH*frac;
-        const line = document.createElementNS("http://www.w3.org/2000/svg","line");
-        line.setAttribute("x1", padX);
-        line.setAttribute("x2", padX + innerW);
-        line.setAttribute("y1", y);
-        line.setAttribute("y2", y);
-        line.setAttribute("stroke", "rgba(255,255,255,0.12)");
-        line.setAttribute("stroke-width", "2");
-        svgEl.appendChild(line);
-      }
+      // Choose 3 y ticks: min / mid / max (rounded)
+      const yTicks = [
+        Math.round(min),
+        Math.round((min + max) / 2),
+        Math.round(max),
+      ];
 
-      let d="";
-      data.forEach((v,i)=>{
-        const x = padX + xStep*i;
-        const val = Number.isFinite(v) ? v : (i>0 ? data[i-1] : clean[0]);
-        const y = padY + (1 - (val-min)/(max-min))*innerH;
-        d += (i===0 ? `M ${x} ${y}` : ` L ${x} ${y}`);
+      // Grid + y labels
+      yTicks.forEach((tv, i) => {
+        const y = padT + (1 - (tv - min) / (max - min)) * innerH;
+
+        const gl = makeSvgEl("line");
+        gl.setAttribute("x1", padL);
+        gl.setAttribute("x2", padL + innerW);
+        gl.setAttribute("y1", y);
+        gl.setAttribute("y2", y);
+        gl.setAttribute("class", "gridLine");
+        svgEl.appendChild(gl);
+
+        const tx = makeSvgEl("text");
+        tx.setAttribute("x", padL - 10);
+        tx.setAttribute("y", y + 6);
+        tx.setAttribute("class", "axisText");
+        tx.setAttribute("text-anchor", "end");
+        tx.textContent = `${tv}${yUnit}`;
+        svgEl.appendChild(tx);
       });
 
-      const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+      // X axis baseline
+      const xAxis = makeSvgEl("line");
+      xAxis.setAttribute("x1", padL);
+      xAxis.setAttribute("x2", padL + innerW);
+      xAxis.setAttribute("y1", padT + innerH);
+      xAxis.setAttribute("y2", padT + innerH);
+      xAxis.setAttribute("class", "axisLine");
+      svgEl.appendChild(xAxis);
+
+      // X ticks/labels: 6 labels across (including ends)
+      const labelCount = 6;
+      const idxs = [];
+      for(let i=0;i<labelCount;i++){
+        const idx = Math.round(i * (labels.length - 1) / (labelCount - 1));
+        if(!idxs.includes(idx)) idxs.push(idx);
+      }
+
+      idxs.forEach(idx => {
+        const x = padL + (innerW * idx) / (data.length - 1);
+
+        const tick = makeSvgEl("line");
+        tick.setAttribute("x1", x);
+        tick.setAttribute("x2", x);
+        tick.setAttribute("y1", padT + innerH);
+        tick.setAttribute("y2", padT + innerH + 8);
+        tick.setAttribute("class", "axisLine");
+        svgEl.appendChild(tick);
+
+        const tx = makeSvgEl("text");
+        tx.setAttribute("x", x);
+        tx.setAttribute("y", padT + innerH + 28);
+        tx.setAttribute("class", "axisText");
+        tx.setAttribute("text-anchor", "middle");
+        tx.textContent = labels[idx] ?? "";
+        svgEl.appendChild(tx);
+      });
+
+      // Data line
+      const xStep = innerW / (data.length - 1);
+      let d = "";
+      data.forEach((v, i) => {
+        const x = padL + xStep * i;
+        const val = Number.isFinite(v) ? v : (i > 0 ? data[i - 1] : clean[0]);
+        const y = padT + (1 - (val - min) / (max - min)) * innerH;
+        d += (i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`);
+      });
+
+      const path = makeSvgEl("path");
       path.setAttribute("d", d);
-      path.setAttribute("fill","none");
-      path.setAttribute("stroke", stroke);
-      path.setAttribute("stroke-width","4");
-      path.setAttribute("stroke-linecap","round");
-      path.setAttribute("stroke-linejoin","round");
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", stroke || "#ffffff");
+      path.setAttribute("stroke-width", "4");
+      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linejoin", "round");
       svgEl.appendChild(path);
     }
 
@@ -276,20 +347,21 @@
 
         const periods = (hourly?.properties?.periods || []).slice(0, HOURS_TO_PLOT);
         const updated = hourly?.properties?.updated;
-
         if(periods.length === 0) throw new Error("No periods");
 
-        // summary (first hour)
         const p0 = periods[0];
         const temp0 = `${p0.temperature}°${p0.temperatureUnit}`;
         const short0 = p0.shortForecast || "";
         const wind0 = (p0.windDirection && p0.windSpeed) ? `Wind ${p0.windDirection} ${p0.windSpeed}` : "";
 
         wxMain.textContent = `${temp0}  ${short0}`.trim();
-        wxSub.textContent  = [wind0, updated ? `Updated ${new Date(updated).toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" })}` : ""]
-          .filter(Boolean).join(" • ");
+        wxSub.textContent  = [
+          wind0,
+          updated ? `Updated ${new Date(updated).toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" })}` : ""
+        ].filter(Boolean).join(" • ");
 
-        // graph arrays
+        const xLabels = periods.map(p => hourLabel(p.startTime));
+
         const temps = periods.map(p => Number.isFinite(p.temperature) ? p.temperature : null);
         const winds = periods.map(p => parseWindMph(p.windSpeed));
         const rains = periods.map(p => {
@@ -297,23 +369,23 @@
           return Number.isFinite(v) ? v : 0;
         });
 
-        const startLabel = formatHourLabel(periods[0].startTime);
-        const endLabel = formatHourLabel(periods[periods.length-1].startTime);
+        // Meta time span
+        const start = new Date(periods[0].startTime).toLocaleTimeString([], { hour:"numeric" });
+        const end = new Date(periods[periods.length-1].startTime).toLocaleTimeString([], { hour:"numeric" });
+        document.getElementById("tempMeta").textContent = `${start}–${end}`;
+        document.getElementById("windMeta").textContent = `${start}–${end}`;
 
-        document.getElementById("tempMeta").textContent = `${startLabel}–${endLabel}`;
-        document.getElementById("windMeta").textContent = `${startLabel}–${endLabel}`;
+        drawLineGraphWithAxes(document.getElementById("tempSvg"), temps, xLabels, "°", "#ffffff");
+        drawLineGraphWithAxes(document.getElementById("windSvg"), winds, xLabels, "", "rgba(255,255,255,0.80)");
 
-        drawLineGraph(document.getElementById("tempSvg"), temps, "#ffffff");
-        drawLineGraph(document.getElementById("windSvg"), winds, "rgba(255,255,255,0.85)");
-
+        const rainWrap = document.getElementById("rainWrap");
         const anyRain = rains.some(v => Number.isFinite(v) && v > 0);
-        const rainCard = document.getElementById("rainCard");
         if(anyRain){
-          rainCard.style.display = "block";
-          document.getElementById("rainMeta").textContent = `${startLabel}–${endLabel}`;
-          drawLineGraph(document.getElementById("rainSvg"), rains, "rgba(255,255,255,0.9)");
+          rainWrap.style.display = "block";
+          document.getElementById("rainMeta").textContent = `${start}–${end}`;
+          drawLineGraphWithAxes(document.getElementById("rainSvg"), rains, xLabels, "%", "rgba(255,255,255,0.85)");
         }else{
-          rainCard.style.display = "none";
+          rainWrap.style.display = "none";
         }
 
       }catch(err){
@@ -328,15 +400,11 @@
     setInterval(updateClock, 1000);
 
     loadWeatherAndGraphs();
-    bustSatelliteCache();
-
-    // refresh weather/graphs without full reload
     setInterval(loadWeatherAndGraphs, 2 * 60 * 1000);
 
-    // refresh satellite image periodically (optional)
+    bustSatelliteCache();
     setInterval(bustSatelliteCache, 5 * 60 * 1000);
 
-    // full page refresh
     setTimeout(() => location.reload(), REFRESH_MINUTES * 60 * 1000);
   </script>
 </body>
