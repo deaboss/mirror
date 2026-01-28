@@ -8,7 +8,6 @@
     :root{
       --bg:#000;
       --fg:#fff;
-      --grid:rgba(255,255,255,0.10);
       --text:rgba(255,255,255,0.92);
       --sub:rgba(255,255,255,0.70);
       --sub2:rgba(255,255,255,0.55);
@@ -23,124 +22,122 @@
     }
     body.cursor-hidden{ cursor:none; }
 
-    /* Rotate whole UI 90° counter-clockwise */
-    .rot{
+    /* Fullscreen rotated stage */
+    .stage{
       position:fixed;
-      top:0; left:0;
-      width:100vh;
-      height:100vw;
-      transform-origin: top left;
-      transform: rotate(-90deg) translateX(-100%);
-      background: var(--bg);
+      inset:0;
+      background:var(--bg);
       overflow:hidden;
     }
 
-    /* Left-aligned column that stays narrow (so it won't span the rotated screen) */
+    /* Rotated canvas sized in JS to exactly fill the screen */
+    .rot{
+      position:absolute;
+      top:0; left:0;
+      transform-origin: top left;
+      background:var(--bg);
+      overflow:hidden;
+      will-change: transform, width, height;
+    }
+
+    /* Layout */
     .wrap{
       height:100%;
       box-sizing:border-box;
-      padding:28px 28px 22px 28px;
+      padding:40px 44px;
       display:flex;
       align-items:flex-start;
       justify-content:flex-start;
     }
+
+    /* This is the “usable width” after rotation: narrow-ish, but tall usage */
     .col{
-      width: min(360px, 30vw);     /* narrower */
-      max-width: 360px;
+      width: min(640px, 64vh);   /* key: tie to vh (post-rotation “width”) */
+      max-width: 640px;
       display:flex;
       flex-direction:column;
       align-items:flex-start;
-      gap:12px;
+      gap:18px;
     }
 
     /* Time */
     .clock{
-      font-size:clamp(32px, 3.2vw, 48px);
+      font-size:clamp(52px, 6.2vh, 80px);
       font-weight:600;
-      line-height:1.05;
+      line-height:1.02;
       letter-spacing:-0.02em;
-      text-align:left;
     }
     .date{
-      margin-top:6px;
-      font-size:clamp(12px, 1.3vw, 16px);
+      margin-top:8px;
+      font-size:clamp(16px, 2.0vh, 22px);
       font-weight:500;
       color:var(--sub);
-      text-align:left;
     }
 
-    /* Weather widget */
+    /* Weather */
     .wxWidget{
       width:100%;
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
-      gap:12px;
+      gap:16px;
     }
     .wxLeft{
       display:flex;
       flex-direction:column;
-      gap:6px;
+      gap:8px;
       min-width:0;
     }
     .wxLoc{
-      font-size:11px;
+      font-size:13px;
       letter-spacing:0.10em;
       text-transform:uppercase;
       color:var(--sub);
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      max-width:100%;
     }
     .wxTemp{
-      font-size:clamp(36px, 3.8vw, 54px);
+      font-size:clamp(52px, 6.6vh, 86px);
       font-weight:650;
       line-height:1.0;
       letter-spacing:-0.03em;
       color:var(--text);
     }
     .wxDesc{
-      font-size:13px;
+      font-size:clamp(16px, 2.0vh, 22px);
       color:var(--sub);
       line-height:1.2;
-      max-width:34ch;
+      max-width:40ch;
     }
     .wxUpdated{
-      font-size:11px;
+      font-size:clamp(12px, 1.5vh, 16px);
       color:var(--sub2);
     }
     .wxRight{
       display:flex;
       flex-direction:column;
       align-items:flex-end;
-      gap:8px;
+      gap:10px;
       flex:0 0 auto;
     }
     .wxIcon{
-      width:36px;   /* smaller */
-      height:36px;
+      width:clamp(44px, 5.0vh, 64px);
+      height:clamp(44px, 5.0vh, 64px);
       opacity:0.95;
     }
     .wxHiLo{
       display:flex;
       flex-direction:column;
       align-items:flex-end;
-      gap:3px;
-      font-size:12px;
+      gap:5px;
+      font-size:clamp(14px, 1.8vh, 18px);
       color:var(--sub);
-      letter-spacing:0.01em;
     }
-    .wxHiLo strong{
-      color:var(--text);
-      font-weight:600;
-    }
+    .wxHiLo strong{ color:var(--text); font-weight:600; }
 
-    /* Space between top widget and graphs */
-    .spacer{
-      height:14px; /* increase/decrease to taste */
-      width:100%;
-    }
+    /* Gap before graphs */
+    .spacer{ height:16px; width:100%; }
 
     /* Graphs */
     .graph{ width:100%; }
@@ -149,17 +146,17 @@
       display:flex;
       justify-content:space-between;
       align-items:baseline;
-      gap:10px;
-      margin-bottom:6px;
+      gap:12px;
+      margin-bottom:8px;
     }
     .graphLabel{
-      font-size:10px;
+      font-size:12px;
       letter-spacing:0.10em;
       text-transform:uppercase;
       color:var(--sub);
     }
     .graphMeta{
-      font-size:10px;
+      font-size:12px;
       color:var(--sub2);
       white-space:nowrap;
       overflow:hidden;
@@ -167,86 +164,91 @@
       max-width:55%;
       text-align:right;
     }
-    svg{ width:100%; height:70px; display:block; } /* smaller */
+    svg{ width:100%; height:clamp(86px, 10.5vh, 120px); display:block; }
 
     /* Satellite */
     .sat{ width:100%; }
     .sat img{
       width:100%;
-      height:200px;       /* smaller */
+      height:clamp(240px, 26vh, 340px);
       object-fit:cover;
       display:block;
-      border-radius:12px;
+      border-radius:14px;
       opacity:0.92;
       filter:contrast(1.05) saturate(1.05);
+      background:#111; /* shows if loading */
     }
 
-    @media (max-height: 850px){
-      svg{height:62px;}
-      .sat img{height:170px;}
-      .spacer{height:10px;}
+    /* If the available height is tight, reduce satellite first */
+    @media (max-height: 760px){
+      .sat img{ height:200px; }
+      svg{ height:78px; }
+      .wrap{ padding:32px 36px; }
+      .col{ gap:14px; }
     }
-    @media (max-height: 720px){
-      .sat{display:none;}
+    @media (max-height: 680px){
+      .sat{ display:none; }
     }
   </style>
 </head>
 <body>
-  <div class="rot">
-    <div class="wrap">
-      <div class="col">
-        <div>
-          <div id="clock" class="clock">--:--</div>
-          <div id="date" class="date">---</div>
-        </div>
-
-        <div class="wxWidget">
-          <div class="wxLeft">
-            <div class="wxLoc">San Luis Obispo, CA</div>
-            <div id="wxTemp" class="wxTemp">--°</div>
-            <div id="wxDesc" class="wxDesc">Loading weather…</div>
-            <div id="wxUpdated" class="wxUpdated"></div>
+  <div class="stage">
+    <div id="rot" class="rot">
+      <div class="wrap">
+        <div class="col">
+          <div>
+            <div id="clock" class="clock">--:--</div>
+            <div id="date" class="date">---</div>
           </div>
 
-          <div class="wxRight">
-            <div id="wxIcon" class="wxIcon" aria-label="Weather icon"></div>
-            <div class="wxHiLo">
-              <div>H: <strong id="wxHigh">--°</strong></div>
-              <div>L: <strong id="wxLow">--°</strong></div>
+          <div class="wxWidget">
+            <div class="wxLeft">
+              <div class="wxLoc">San Luis Obispo, CA</div>
+              <div id="wxTemp" class="wxTemp">--°</div>
+              <div id="wxDesc" class="wxDesc">Loading weather…</div>
+              <div id="wxUpdated" class="wxUpdated"></div>
+            </div>
+
+            <div class="wxRight">
+              <div id="wxIcon" class="wxIcon" aria-label="Weather icon"></div>
+              <div class="wxHiLo">
+                <div>H: <strong id="wxHigh">--°</strong></div>
+                <div>L: <strong id="wxLow">--°</strong></div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="spacer"></div>
+          <div class="spacer"></div>
 
-        <div class="graph">
-          <div class="graphHeader">
-            <div class="graphLabel">Temperature (°F)</div>
-            <div id="tempMeta" class="graphMeta"></div>
+          <div class="graph">
+            <div class="graphHeader">
+              <div class="graphLabel">Temperature (°F)</div>
+              <div id="tempMeta" class="graphMeta"></div>
+            </div>
+            <svg id="tempSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
           </div>
-          <svg id="tempSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
-        </div>
 
-        <div class="graph">
-          <div class="graphHeader">
-            <div class="graphLabel">Surface wind (mph)</div>
-            <div id="windMeta" class="graphMeta"></div>
+          <div class="graph">
+            <div class="graphHeader">
+              <div class="graphLabel">Surface wind (mph)</div>
+              <div id="windMeta" class="graphMeta"></div>
+            </div>
+            <svg id="windSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
           </div>
-          <svg id="windSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
-        </div>
 
-        <div class="graph" id="rainWrap" style="display:none">
-          <div class="graphHeader">
-            <div class="graphLabel">Rain chance (%)</div>
-            <div id="rainMeta" class="graphMeta"></div>
+          <div class="graph" id="rainWrap" style="display:none">
+            <div class="graphHeader">
+              <div class="graphLabel">Rain chance (%)</div>
+              <div id="rainMeta" class="graphMeta"></div>
+            </div>
+            <svg id="rainSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
           </div>
-          <svg id="rainSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
-        </div>
 
-        <div class="sat">
-          <img id="satImg"
-               alt="GOES-18 Satellite"
-               src="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg" />
+          <div class="sat">
+            <img id="satImg"
+                 alt="GOES-18 Satellite"
+                 src="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg" />
+          </div>
         </div>
       </div>
     </div>
@@ -264,6 +266,19 @@
     const satBaseUrl =
       "https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg";
 
+    // ===== Rotate sizing (fills the screen exactly) =====
+    function layoutRotate() {
+      const rot = document.getElementById("rot");
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      // After rotation, the rotated container's "natural" width=vh and height=vw.
+      rot.style.width = vh + "px";
+      rot.style.height = vw + "px";
+      rot.style.transform = `rotate(-90deg) translateX(${-vw}px)`;
+    }
+    window.addEventListener("resize", layoutRotate);
+
     // ===== Cursor hide =====
     let cursorTimer = null;
     function showCursor(){
@@ -271,7 +286,7 @@
       clearTimeout(cursorTimer);
       cursorTimer = setTimeout(() => document.body.classList.add("cursor-hidden"), CURSOR_HIDE_MS);
     }
-    window.addEventListener("load", showCursor);
+    window.addEventListener("load", () => { layoutRotate(); showCursor(); });
     ["mousemove","mousedown","touchstart","keydown"].forEach(evt => {
       window.addEventListener(evt, showCursor, { passive: true });
     });
@@ -316,7 +331,7 @@
       return document.createElementNS("http://www.w3.org/2000/svg", name);
     }
 
-    // ===== Minimal weather icons =====
+    // ===== Weather icons =====
     function iconSvg(kind){
       const common = `fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"`;
       if(kind === "sun"){
@@ -507,7 +522,6 @@
 
         const p0 = periods[0];
 
-        // Widget
         document.getElementById("wxTemp").textContent = `${p0.temperature}°`;
         document.getElementById("wxDesc").textContent = p0.shortForecast || "";
         document.getElementById("wxUpdated").textContent =
@@ -519,7 +533,6 @@
 
         document.getElementById("wxIcon").innerHTML = iconSvg(pickIcon(p0.shortForecast));
 
-        // Graphs
         const xLabels = periods.map(p => hourLabel(p.startTime));
         const temps = periods.map(p => Number.isFinite(p.temperature) ? p.temperature : null);
         const winds = periods.map(p => parseWindMph(p.windSpeed));
@@ -546,7 +559,6 @@
         }else{
           rainWrap.style.display = "none";
         }
-
       }catch(err){
         document.getElementById("wxDesc").textContent = "Weather unavailable";
         document.getElementById("wxUpdated").textContent = "";
