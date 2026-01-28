@@ -20,40 +20,36 @@
       font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
       overflow:hidden;
     }
-    body.cursor-hidden{ cursor:none; }
 
-    /* Fullscreen rotated stage */
-    .stage{
-      position:fixed;
-      inset:0;
-      background:var(--bg);
-      overflow:hidden;
-    }
+    /* Cursor hide ONLY (no display/opacity changes) */
+    body.cursor-hidden, body.cursor-hidden * { cursor: none !important; }
 
-    /* Rotated canvas sized in JS to exactly fill the screen */
+    /* Rotate whole UI 90° CCW (CSS-only, reliable) */
     .rot{
-      position:absolute;
+      position:fixed;
       top:0; left:0;
+      width:100vh;   /* swapped because rotated */
+      height:100vw;
       transform-origin: top left;
+      transform: rotate(-90deg) translateX(-100%);
       background:var(--bg);
       overflow:hidden;
-      will-change: transform, width, height;
     }
 
-    /* Layout */
+    /* Layout tuned for a 1080p screen: tall usage, limited width */
     .wrap{
       height:100%;
       box-sizing:border-box;
-      padding:40px 44px;
+      padding:42px 46px;
       display:flex;
       align-items:flex-start;
       justify-content:flex-start;
     }
 
-    /* This is the “usable width” after rotation: narrow-ish, but tall usage */
+    /* “Width” after rotation: keep narrow so it doesn’t span the whole screen */
     .col{
-      width: min(640px, 64vh);   /* key: tie to vh (post-rotation “width”) */
-      max-width: 640px;
+      width: min(680px, 62vh);   /* key: tied to vh so rotated scaling feels right */
+      max-width: 680px;
       display:flex;
       flex-direction:column;
       align-items:flex-start;
@@ -62,7 +58,7 @@
 
     /* Time */
     .clock{
-      font-size:clamp(52px, 6.2vh, 80px);
+      font-size:clamp(52px, 6.2vh, 82px);
       font-weight:600;
       line-height:1.02;
       letter-spacing:-0.02em;
@@ -74,7 +70,7 @@
       color:var(--sub);
     }
 
-    /* Weather */
+    /* Weather widget */
     .wxWidget{
       width:100%;
       display:flex;
@@ -96,9 +92,10 @@
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
+      max-width:100%;
     }
     .wxTemp{
-      font-size:clamp(52px, 6.6vh, 86px);
+      font-size:clamp(52px, 6.6vh, 88px);
       font-weight:650;
       line-height:1.0;
       letter-spacing:-0.03em;
@@ -108,7 +105,7 @@
       font-size:clamp(16px, 2.0vh, 22px);
       color:var(--sub);
       line-height:1.2;
-      max-width:40ch;
+      max-width:42ch;
     }
     .wxUpdated{
       font-size:clamp(12px, 1.5vh, 16px);
@@ -136,8 +133,8 @@
     }
     .wxHiLo strong{ color:var(--text); font-weight:600; }
 
-    /* Gap before graphs */
-    .spacer{ height:16px; width:100%; }
+    /* Gap between weather and graphs */
+    .spacer{ height:24px; width:100%; }
 
     /* Graphs */
     .graph{ width:100%; }
@@ -164,27 +161,32 @@
       max-width:55%;
       text-align:right;
     }
-    svg{ width:100%; height:clamp(86px, 10.5vh, 120px); display:block; }
+    svg{
+      width:100%;
+      height:clamp(86px, 10.5vh, 122px);
+      display:block;
+    }
 
     /* Satellite */
     .sat{ width:100%; }
     .sat img{
       width:100%;
-      height:clamp(240px, 26vh, 340px);
+      height:clamp(240px, 26vh, 360px);
       object-fit:cover;
       display:block;
       border-radius:14px;
       opacity:0.92;
       filter:contrast(1.05) saturate(1.05);
-      background:#111; /* shows if loading */
+      background:#111;
     }
 
-    /* If the available height is tight, reduce satellite first */
+    /* If height is tight, reduce satellite first */
     @media (max-height: 760px){
-      .sat img{ height:200px; }
-      svg{ height:78px; }
-      .wrap{ padding:32px 36px; }
+      .wrap{ padding:34px 38px; }
       .col{ gap:14px; }
+      .spacer{ height:18px; }
+      svg{ height:78px; }
+      .sat img{ height:210px; }
     }
     @media (max-height: 680px){
       .sat{ display:none; }
@@ -192,63 +194,61 @@
   </style>
 </head>
 <body>
-  <div class="stage">
-    <div id="rot" class="rot">
-      <div class="wrap">
-        <div class="col">
-          <div>
-            <div id="clock" class="clock">--:--</div>
-            <div id="date" class="date">---</div>
+  <div class="rot">
+    <div class="wrap">
+      <div class="col">
+        <div>
+          <div id="clock" class="clock">--:--</div>
+          <div id="date" class="date">---</div>
+        </div>
+
+        <div class="wxWidget">
+          <div class="wxLeft">
+            <div class="wxLoc">San Luis Obispo, CA</div>
+            <div id="wxTemp" class="wxTemp">--°</div>
+            <div id="wxDesc" class="wxDesc">Loading weather…</div>
+            <div id="wxUpdated" class="wxUpdated"></div>
           </div>
 
-          <div class="wxWidget">
-            <div class="wxLeft">
-              <div class="wxLoc">San Luis Obispo, CA</div>
-              <div id="wxTemp" class="wxTemp">--°</div>
-              <div id="wxDesc" class="wxDesc">Loading weather…</div>
-              <div id="wxUpdated" class="wxUpdated"></div>
-            </div>
-
-            <div class="wxRight">
-              <div id="wxIcon" class="wxIcon" aria-label="Weather icon"></div>
-              <div class="wxHiLo">
-                <div>H: <strong id="wxHigh">--°</strong></div>
-                <div>L: <strong id="wxLow">--°</strong></div>
-              </div>
+          <div class="wxRight">
+            <div id="wxIcon" class="wxIcon" aria-label="Weather icon"></div>
+            <div class="wxHiLo">
+              <div>H: <strong id="wxHigh">--°</strong></div>
+              <div>L: <strong id="wxLow">--°</strong></div>
             </div>
           </div>
+        </div>
 
-          <div class="spacer"></div>
+        <div class="spacer"></div>
 
-          <div class="graph">
-            <div class="graphHeader">
-              <div class="graphLabel">Temperature (°F)</div>
-              <div id="tempMeta" class="graphMeta"></div>
-            </div>
-            <svg id="tempSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
+        <div class="graph">
+          <div class="graphHeader">
+            <div class="graphLabel">Temperature (°F)</div>
+            <div id="tempMeta" class="graphMeta"></div>
           </div>
+          <svg id="tempSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
+        </div>
 
-          <div class="graph">
-            <div class="graphHeader">
-              <div class="graphLabel">Surface wind (mph)</div>
-              <div id="windMeta" class="graphMeta"></div>
-            </div>
-            <svg id="windSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
+        <div class="graph">
+          <div class="graphHeader">
+            <div class="graphLabel">Surface wind (mph)</div>
+            <div id="windMeta" class="graphMeta"></div>
           </div>
+          <svg id="windSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
+        </div>
 
-          <div class="graph" id="rainWrap" style="display:none">
-            <div class="graphHeader">
-              <div class="graphLabel">Rain chance (%)</div>
-              <div id="rainMeta" class="graphMeta"></div>
-            </div>
-            <svg id="rainSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
+        <div class="graph" id="rainWrap" style="display:none">
+          <div class="graphHeader">
+            <div class="graphLabel">Rain chance (%)</div>
+            <div id="rainMeta" class="graphMeta"></div>
           </div>
+          <svg id="rainSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
+        </div>
 
-          <div class="sat">
-            <img id="satImg"
-                 alt="GOES-18 Satellite"
-                 src="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg" />
-          </div>
+        <div class="sat">
+          <img id="satImg"
+               alt="GOES-18 Satellite"
+               src="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg" />
         </div>
       </div>
     </div>
@@ -266,29 +266,16 @@
     const satBaseUrl =
       "https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg";
 
-    // ===== Rotate sizing (fills the screen exactly) =====
-    function layoutRotate() {
-      const rot = document.getElementById("rot");
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-
-      // After rotation, the rotated container's "natural" width=vh and height=vw.
-      rot.style.width = vh + "px";
-      rot.style.height = vw + "px";
-      rot.style.transform = `rotate(-90deg) translateX(${-vw}px)`;
-    }
-    window.addEventListener("resize", layoutRotate);
-
-    // ===== Cursor hide =====
+    // ===== Cursor hide (ONLY affects cursor) =====
     let cursorTimer = null;
-    function showCursor(){
+    function bumpCursorTimer(){
       document.body.classList.remove("cursor-hidden");
       clearTimeout(cursorTimer);
       cursorTimer = setTimeout(() => document.body.classList.add("cursor-hidden"), CURSOR_HIDE_MS);
     }
-    window.addEventListener("load", () => { layoutRotate(); showCursor(); });
+    window.addEventListener("load", bumpCursorTimer);
     ["mousemove","mousedown","touchstart","keydown"].forEach(evt => {
-      window.addEventListener(evt, showCursor, { passive: true });
+      window.addEventListener(evt, bumpCursorTimer, { passive: true });
     });
 
     // ===== Time/Date =====
@@ -331,7 +318,7 @@
       return document.createElementNS("http://www.w3.org/2000/svg", name);
     }
 
-    // ===== Weather icons =====
+    // ===== Minimal weather icons =====
     function iconSvg(kind){
       const common = `fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"`;
       if(kind === "sun"){
@@ -405,7 +392,6 @@
       if(min === max){ min -= 1; max += 1; }
 
       const yTicks = [Math.round(min), Math.round((min + max)/2), Math.round(max)];
-
       yTicks.forEach(tv => {
         const y = padT + (1 - (tv - min)/(max - min)) * innerH;
 
