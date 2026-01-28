@@ -6,9 +6,15 @@
   <title>Smart Mirror</title>
   <style>
     :root{
-      --bg:#000000;
-      --fg:#ffffff;
-      --grid:rgba(255,255,255,0.12);
+      --bg:#000;
+      --fg:#fff;
+      --grid:rgba(255,255,255,0.10);
+      --axis:rgba(255,255,255,0.18);
+      --text:rgba(255,255,255,0.88);
+      --sub:rgba(255,255,255,0.72);
+      --line:#fff;
+      --line2:rgba(255,255,255,0.80);
+      --line3:rgba(255,255,255,0.85);
     }
     html,body{height:100%}
     body{
@@ -19,122 +25,142 @@
       overflow:hidden;
     }
 
+    /* Left column that doesn't span the full screen */
     .wrap{
       height:100%;
       box-sizing:border-box;
-      padding:28px 28px 22px 28px;
+      padding:28px;
       display:flex;
-      justify-content:flex-start;
       align-items:flex-start;
+      justify-content:flex-start;
     }
     .col{
-      width:min(560px, 56vw);
+      width:min(520px, 46vw);     /* limits overall width */
+      max-width:520px;
       display:flex;
       flex-direction:column;
-      gap:14px;
+      align-items:flex-start;      /* hard left */
+      gap:12px;
     }
 
     .clock{
-      font-size:clamp(40px, 4vw, 64px);
+      font-size:clamp(38px, 3.8vw, 58px);
       font-weight:600;
       line-height:1.05;
       letter-spacing:-0.02em;
+      text-align:left;
     }
     .date{
       margin-top:6px;
-      font-size:clamp(14px, 1.5vw, 18px);
+      font-size:clamp(13px, 1.4vw, 17px);
       font-weight:500;
-      opacity:0.95;
+      color:var(--sub);
+      text-align:left;
     }
 
-    .weather{display:flex;flex-direction:column;gap:6px}
+    .weather{
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      text-align:left;
+    }
     .loc{
       font-size:11px;
       letter-spacing:0.10em;
       text-transform:uppercase;
-      opacity:0.9;
+      color:var(--sub);
     }
     .wxMain{
-      font-size:clamp(16px, 1.8vw, 22px);
+      font-size:clamp(15px, 1.7vw, 20px);
       font-weight:600;
       letter-spacing:-0.01em;
       line-height:1.2;
+      color:var(--text);
     }
-    .wxSub{font-size:13px;opacity:0.9}
+    .wxSub{
+      font-size:13px;
+      color:var(--sub);
+    }
 
-    .graph{margin-top:6px}
+    .graph{
+      width:100%;
+      margin-top:6px;
+    }
     .graphHeader{
+      width:100%;
       display:flex;
       justify-content:space-between;
       align-items:baseline;
-      gap:12px;
+      gap:10px;
       margin-bottom:6px;
     }
     .graphLabel{
       font-size:11px;
       letter-spacing:0.10em;
       text-transform:uppercase;
-      opacity:0.9;
+      color:var(--sub);
     }
     .graphMeta{
       font-size:11px;
-      opacity:0.75;
+      color:rgba(255,255,255,0.55);
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
       max-width:55%;
+      text-align:right;
     }
 
-    svg{width:100%;height:92px;display:block} /* taller to fit axes */
-    .axisText{
-      fill:#ffffff;
-      opacity:0.85;
-      font-size:18px; /* in SVG viewBox units */
-      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
-    }
-    .axisLine{stroke:rgba(255,255,255,0.14);stroke-width:2}
-    .gridLine{stroke:rgba(255,255,255,0.10);stroke-width:2}
-    .dataLine{fill:none;stroke:#ffffff;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
-
-    .sat{
-      margin-top:4px;
+    /* Smaller graphs */
+    svg{
       width:100%;
-      border-radius:14px;
-      overflow:hidden;
+      height:78px;
+      display:block;
+    }
+
+    /* Smaller satellite image, no border/box */
+    .sat{
+      width:100%;
+      margin-top:6px;
     }
     .sat img{
       width:100%;
-      height:auto;
-      display:block;
+      height:240px;              /* fixed modest height */
       object-fit:cover;
+      display:block;
+      border-radius:12px;        /* optional; remove if you want perfectly square */
       opacity:0.92;
       filter:contrast(1.05) saturate(1.05);
     }
 
-    @media (max-height: 900px){
-      .col{ gap:10px; }
-      svg{ height:84px; }
-      .sat img{ max-height: 340px; object-fit:cover; }
+    /* If your screen is short, shrink image first */
+    @media (max-height: 850px){
+      svg{height:70px;}
+      .sat img{height:200px;}
     }
-    @media (max-height: 750px){
-      .sat{ display:none; }
+    @media (max-height: 720px){
+      svg{height:64px;}
+      .sat img{display:none;}
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="col">
+      <!-- Clock (top) -->
       <div>
         <div id="clock" class="clock">--:--</div>
         <div id="date" class="date">---</div>
       </div>
 
+      <!-- Weather (directly under clock) -->
       <div class="weather">
         <div class="loc">San Luis Obispo, CA</div>
         <div id="wxMain" class="wxMain">Loading weather…</div>
         <div id="wxSub" class="wxSub"></div>
       </div>
 
+      <!-- Graphs (no surrounding boxes) -->
       <div class="graph">
         <div class="graphHeader">
           <div class="graphLabel">Temperature (°F)</div>
@@ -159,6 +185,7 @@
         <svg id="rainSvg" viewBox="0 0 1000 170" preserveAspectRatio="none" aria-label="Rain chance graph"></svg>
       </div>
 
+      <!-- Satellite (no box; constrained size) -->
       <div class="sat">
         <img id="satImg"
              alt="GOES-18 Satellite"
@@ -176,7 +203,8 @@
 
     const HOURS_TO_PLOT = 24;
 
-    const satBaseUrl = "https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg";
+    const satBaseUrl =
+      "https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg";
 
     function pad2(n){ return String(n).padStart(2,"0"); }
 
@@ -207,35 +235,34 @@
 
     function hourLabel(iso){
       const d = new Date(iso);
-      // "3p", "6p", "9p", ...
       const h = d.getHours();
       const hr = ((h + 11) % 12) + 1;
       const ap = h < 12 ? "a" : "p";
       return `${hr}${ap}`;
     }
 
-    function makeSvgEl(name){
+    function svgEl(name){
       return document.createElementNS("http://www.w3.org/2000/svg", name);
     }
 
-    function drawLineGraphWithAxes(svgEl, data, labels, yUnit, stroke){
-      // SVG coordinate space
-      const W = 1000, H = 170;
-      const padL = 62, padR = 16, padT = 14, padB = 46;  // bottom room for x labels
-      const innerW = W - padL - padR;
-      const innerH = H - padT - padB;
+    function drawLineGraphWithAxes(svg, data, xLabels, ySuffix, stroke){
+      const W=1000,H=170;
+      const padL=64, padR=18, padT=14, padB=50;
+      const innerW=W-padL-padR, innerH=H-padT-padB;
 
-      svgEl.innerHTML = "";
+      svg.innerHTML = "";
 
       const clean = data.filter(v => Number.isFinite(v));
       if(clean.length < 2){
-        const t = makeSvgEl("text");
+        const t = svgEl("text");
         t.setAttribute("x", W/2);
         t.setAttribute("y", H/2);
-        t.setAttribute("class", "axisText");
+        t.setAttribute("fill", "#fff");
+        t.setAttribute("opacity", "0.8");
+        t.setAttribute("font-size", "18");
         t.setAttribute("text-anchor", "middle");
         t.textContent = "No data";
-        svgEl.appendChild(t);
+        svg.appendChild(t);
         return;
       }
 
@@ -243,89 +270,95 @@
       let max = Math.max(...clean);
       if(min === max){ min -= 1; max += 1; }
 
-      // Choose 3 y ticks: min / mid / max (rounded)
+      // y ticks: min/mid/max (rounded nicely)
       const yTicks = [
         Math.round(min),
         Math.round((min + max) / 2),
         Math.round(max),
       ];
 
-      // Grid + y labels
-      yTicks.forEach((tv, i) => {
+      yTicks.forEach(tv => {
         const y = padT + (1 - (tv - min) / (max - min)) * innerH;
 
-        const gl = makeSvgEl("line");
+        const gl = svgEl("line");
         gl.setAttribute("x1", padL);
         gl.setAttribute("x2", padL + innerW);
         gl.setAttribute("y1", y);
         gl.setAttribute("y2", y);
-        gl.setAttribute("class", "gridLine");
-        svgEl.appendChild(gl);
+        gl.setAttribute("stroke", "rgba(255,255,255,0.10)");
+        gl.setAttribute("stroke-width", "2");
+        svg.appendChild(gl);
 
-        const tx = makeSvgEl("text");
+        const tx = svgEl("text");
         tx.setAttribute("x", padL - 10);
         tx.setAttribute("y", y + 6);
-        tx.setAttribute("class", "axisText");
+        tx.setAttribute("fill", "#fff");
+        tx.setAttribute("opacity", "0.75");
+        tx.setAttribute("font-size", "18");
         tx.setAttribute("text-anchor", "end");
-        tx.textContent = `${tv}${yUnit}`;
-        svgEl.appendChild(tx);
+        tx.textContent = `${tv}${ySuffix}`;
+        svg.appendChild(tx);
       });
 
-      // X axis baseline
-      const xAxis = makeSvgEl("line");
+      // x axis
+      const xAxis = svgEl("line");
       xAxis.setAttribute("x1", padL);
       xAxis.setAttribute("x2", padL + innerW);
       xAxis.setAttribute("y1", padT + innerH);
       xAxis.setAttribute("y2", padT + innerH);
-      xAxis.setAttribute("class", "axisLine");
-      svgEl.appendChild(xAxis);
+      xAxis.setAttribute("stroke", "rgba(255,255,255,0.18)");
+      xAxis.setAttribute("stroke-width", "2");
+      svg.appendChild(xAxis);
 
-      // X ticks/labels: 6 labels across (including ends)
+      // x ticks/labels (6 labels)
       const labelCount = 6;
       const idxs = [];
       for(let i=0;i<labelCount;i++){
-        const idx = Math.round(i * (labels.length - 1) / (labelCount - 1));
+        const idx = Math.round(i * (xLabels.length - 1) / (labelCount - 1));
         if(!idxs.includes(idx)) idxs.push(idx);
       }
 
       idxs.forEach(idx => {
         const x = padL + (innerW * idx) / (data.length - 1);
 
-        const tick = makeSvgEl("line");
+        const tick = svgEl("line");
         tick.setAttribute("x1", x);
         tick.setAttribute("x2", x);
         tick.setAttribute("y1", padT + innerH);
         tick.setAttribute("y2", padT + innerH + 8);
-        tick.setAttribute("class", "axisLine");
-        svgEl.appendChild(tick);
+        tick.setAttribute("stroke", "rgba(255,255,255,0.18)");
+        tick.setAttribute("stroke-width", "2");
+        svg.appendChild(tick);
 
-        const tx = makeSvgEl("text");
+        const tx = svgEl("text");
         tx.setAttribute("x", x);
-        tx.setAttribute("y", padT + innerH + 28);
-        tx.setAttribute("class", "axisText");
+        tx.setAttribute("y", padT + innerH + 30);
+        tx.setAttribute("fill", "#fff");
+        tx.setAttribute("opacity", "0.70");
+        tx.setAttribute("font-size", "18");
         tx.setAttribute("text-anchor", "middle");
-        tx.textContent = labels[idx] ?? "";
-        svgEl.appendChild(tx);
+        tx.textContent = xLabels[idx] ?? "";
+        svg.appendChild(tx);
       });
 
-      // Data line
+      // data path
       const xStep = innerW / (data.length - 1);
       let d = "";
-      data.forEach((v, i) => {
-        const x = padL + xStep * i;
-        const val = Number.isFinite(v) ? v : (i > 0 ? data[i - 1] : clean[0]);
-        const y = padT + (1 - (val - min) / (max - min)) * innerH;
-        d += (i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`);
+      data.forEach((v,i)=>{
+        const x = padL + xStep*i;
+        const val = Number.isFinite(v) ? v : (i>0 ? data[i-1] : clean[0]);
+        const y = padT + (1 - (val-min)/(max-min))*innerH;
+        d += (i===0 ? `M ${x} ${y}` : ` L ${x} ${y}`);
       });
 
-      const path = makeSvgEl("path");
+      const path = svgEl("path");
       path.setAttribute("d", d);
-      path.setAttribute("fill", "none");
-      path.setAttribute("stroke", stroke || "#ffffff");
-      path.setAttribute("stroke-width", "4");
-      path.setAttribute("stroke-linecap", "round");
-      path.setAttribute("stroke-linejoin", "round");
-      svgEl.appendChild(path);
+      path.setAttribute("fill","none");
+      path.setAttribute("stroke", stroke || "#fff");
+      path.setAttribute("stroke-width","4");
+      path.setAttribute("stroke-linecap","round");
+      path.setAttribute("stroke-linejoin","round");
+      svg.appendChild(path);
     }
 
     async function loadWeatherAndGraphs(){
@@ -361,7 +394,6 @@
         ].filter(Boolean).join(" • ");
 
         const xLabels = periods.map(p => hourLabel(p.startTime));
-
         const temps = periods.map(p => Number.isFinite(p.temperature) ? p.temperature : null);
         const winds = periods.map(p => parseWindMph(p.windSpeed));
         const rains = periods.map(p => {
@@ -369,13 +401,13 @@
           return Number.isFinite(v) ? v : 0;
         });
 
-        // Meta time span
         const start = new Date(periods[0].startTime).toLocaleTimeString([], { hour:"numeric" });
         const end = new Date(periods[periods.length-1].startTime).toLocaleTimeString([], { hour:"numeric" });
+
         document.getElementById("tempMeta").textContent = `${start}–${end}`;
         document.getElementById("windMeta").textContent = `${start}–${end}`;
 
-        drawLineGraphWithAxes(document.getElementById("tempSvg"), temps, xLabels, "°", "#ffffff");
+        drawLineGraphWithAxes(document.getElementById("tempSvg"), temps, xLabels, "°", "#fff");
         drawLineGraphWithAxes(document.getElementById("windSvg"), winds, xLabels, "", "rgba(255,255,255,0.80)");
 
         const rainWrap = document.getElementById("rainWrap");
@@ -387,7 +419,6 @@
         }else{
           rainWrap.style.display = "none";
         }
-
       }catch(err){
         wxMain.textContent = "Weather unavailable";
         wxSub.textContent = "";
