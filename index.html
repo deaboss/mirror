@@ -21,14 +21,14 @@
       overflow:hidden;
     }
 
-    /* Cursor hide ONLY (no display/opacity changes) */
+    /* Cursor hide ONLY */
     body.cursor-hidden, body.cursor-hidden * { cursor: none !important; }
 
-    /* Rotate whole UI 90° CCW (CSS-only, reliable) */
+    /* Rotate 90° counter-clockwise */
     .rot{
       position:fixed;
       top:0; left:0;
-      width:100vh;   /* swapped because rotated */
+      width:100vh;
       height:100vw;
       transform-origin: top left;
       transform: rotate(-90deg) translateX(-100%);
@@ -36,7 +36,7 @@
       overflow:hidden;
     }
 
-    /* Layout tuned for a 1080p screen: tall usage, limited width */
+    /* Layout: tall usage, limited width */
     .wrap{
       height:100%;
       box-sizing:border-box;
@@ -45,18 +45,15 @@
       align-items:flex-start;
       justify-content:flex-start;
     }
-
-    /* “Width” after rotation: keep narrow so it doesn’t span the whole screen */
     .col{
-      width: min(500px, 62vh);   /* key: tied to vh so rotated scaling feels right */
-      max-width: 500px;
+      width:min(700px, 64vh);
+      max-width:700px;
       display:flex;
       flex-direction:column;
       align-items:flex-start;
       gap:18px;
     }
 
-    /* Time */
     .clock{
       font-size:clamp(52px, 6.2vh, 82px);
       font-weight:600;
@@ -70,19 +67,19 @@
       color:var(--sub);
     }
 
-    /* Weather widget */
-    .wxRight{
+    /* Weather */
+    .wxWidget{
+      width:100%;
       display:flex;
-      flex-direction:column;
       align-items:flex-start;
-      gap:10px;
-      flex:0 0 auto
+      justify-content:flex-start;
     }
     .wxLeft{
       display:flex;
       flex-direction:column;
-      gap:8px;
+      gap:10px;
       min-width:0;
+      width:100%;
     }
     .wxLoc{
       font-size:13px;
@@ -94,29 +91,32 @@
       text-overflow:ellipsis;
       max-width:100%;
     }
+
+    /* Temp + (icon/hi-lo) on one line */
+    .wxTempRow{
+      display:flex;
+      align-items:baseline;
+      gap:18px;
+      flex-wrap:nowrap;
+      width:100%;
+    }
     .wxTemp{
       font-size:clamp(52px, 6.6vh, 88px);
       font-weight:650;
       line-height:1.0;
       letter-spacing:-0.03em;
       color:var(--text);
+      white-space:nowrap;
+      flex:0 0 auto;
     }
-    .wxDesc{
-      font-size:clamp(16px, 2.0vh, 22px);
-      color:var(--sub);
-      line-height:1.2;
-      max-width:42ch;
-    }
-    .wxUpdated{
-      font-size:clamp(12px, 1.5vh, 16px);
-      color:var(--sub2);
-    }
+
     .wxRight{
       display:flex;
       flex-direction:column;
-      align-items:flex-end;
+      align-items:flex-start;
       gap:10px;
       flex:0 0 auto;
+      min-width:0;
     }
     .wxIcon{
       width:clamp(44px, 5.0vh, 64px);
@@ -126,15 +126,26 @@
     .wxHiLo{
       display:flex;
       flex-direction:column;
-      align-items:flex-end;
+      align-items:flex-start;
       gap:5px;
       font-size:clamp(14px, 1.8vh, 18px);
       color:var(--sub);
+      white-space:nowrap;
     }
     .wxHiLo strong{ color:var(--text); font-weight:600; }
 
-    /* Gap between weather and graphs */
-    .spacer{ height:100px; width:100%; }
+    .wxDesc{
+      font-size:clamp(16px, 2.0vh, 22px);
+      color:var(--sub);
+      line-height:1.2;
+      max-width:44ch;
+    }
+    .wxUpdated{
+      font-size:clamp(12px, 1.5vh, 16px);
+      color:var(--sub2);
+    }
+
+    .spacer{ height:24px; width:100%; }
 
     /* Graphs */
     .graph{ width:100%; }
@@ -151,6 +162,7 @@
       letter-spacing:0.10em;
       text-transform:uppercase;
       color:var(--sub);
+      white-space:nowrap;
     }
     .graphMeta{
       font-size:12px;
@@ -167,11 +179,11 @@
       display:block;
     }
 
-    /* Satellite */
+    /* Satellite: square */
     .sat{ width:100%; }
     .sat img{
       width:100%;
-      aspect-ratio: 1/.9;
+      aspect-ratio:1 / 1;
       height:auto;
       object-fit:cover;
       display:block;
@@ -179,15 +191,15 @@
       opacity:0.92;
       filter:contrast(1.05) saturate(1.05);
       background:#111;
+      max-height:360px; /* keeps it from getting huge */
     }
 
-    /* If height is tight, reduce satellite first */
     @media (max-height: 760px){
       .wrap{ padding:34px 38px; }
       .col{ gap:14px; }
       .spacer{ height:18px; }
       svg{ height:78px; }
-      .sat img{ height:210px; }
+      .sat img{ max-height:260px; }
     }
     @media (max-height: 680px){
       .sat{ display:none; }
@@ -203,20 +215,25 @@
           <div id="date" class="date">---</div>
         </div>
 
+        <!-- Weather widget -->
         <div class="wxWidget">
           <div class="wxLeft">
             <div class="wxLoc">San Luis Obispo, CA</div>
-            <div id="wxTemp" class="wxTemp">--°</div>
+
+            <div class="wxTempRow">
+              <div id="wxTemp" class="wxTemp">--°</div>
+
+              <div class="wxRight">
+                <div id="wxIcon" class="wxIcon" aria-label="Weather icon"></div>
+                <div class="wxHiLo">
+                  <div>H: <strong id="wxHigh">--°</strong></div>
+                  <div>L: <strong id="wxLow">--°</strong></div>
+                </div>
+              </div>
+            </div>
+
             <div id="wxDesc" class="wxDesc">Loading weather…</div>
             <div id="wxUpdated" class="wxUpdated"></div>
-          </div>
-
-          <div class="wxRight">
-            <div id="wxIcon" class="wxIcon" aria-label="Weather icon"></div>
-            <div class="wxHiLo">
-              <div>H: <strong id="wxHigh">--°</strong></div>
-              <div>L: <strong id="wxLow">--°</strong></div>
-            </div>
           </div>
         </div>
 
@@ -267,7 +284,7 @@
     const satBaseUrl =
       "https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg";
 
-    // ===== Cursor hide (ONLY affects cursor) =====
+    // ===== Cursor hide (ONLY cursor) =====
     let cursorTimer = null;
     function bumpCursorTimer(){
       document.body.classList.remove("cursor-hidden");
@@ -567,6 +584,3 @@
   </script>
 </body>
 </html>
-
-
-
