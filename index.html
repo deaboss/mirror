@@ -72,11 +72,11 @@
 
     /* Weather widget */
     .wxWidget{
-      width:100%;
       display:flex;
+      flex-direction:column;
       align-items:flex-start;
-      justify-content:space-between;
-      gap:16px;
+      gap:10px;
+      flex:0 0 auto
     }
     .wxLeft{
       display:flex;
@@ -171,7 +171,8 @@
     .sat{ width:100%; }
     .sat img{
       width:100%;
-      height:clamp(240px, 26vh, 360px);
+      aspect-ratio: 1/1;
+      height:auto;
       object-fit:cover;
       display:block;
       border-radius:14px;
@@ -566,4 +567,5 @@
   </script>
 </body>
 </html>
+
 
