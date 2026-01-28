@@ -558,17 +558,17 @@
         const start = new Date(periods[0].startTime).toLocaleTimeString([], { hour:"numeric", hour12:true });
         const end = new Date(periods[periods.length-1].startTime).toLocaleTimeString([], { hour:"numeric", hour12:true });
 
-        document.getElementById("tempMeta").textContent = `${start}–${end}`;
-        document.getElementById("windMeta").textContent = `${start}–${end}`;
+        document.getElementById("tempMeta").textContent = "";
+        document.getElementById("windMeta").textContent = "";
 
         drawLineGraphWithAxes(document.getElementById("tempSvg"), temps, xLabels, "°", "#fff");
         drawLineGraphWithAxes(document.getElementById("windSvg"), winds, xLabels, "", "rgba(255,255,255,0.80)");
 
         const rainWrap = document.getElementById("rainWrap");
-        const anyRain = rains.some(v => Number.isFinite(v) && v > 0);
+        const anyRain = rains.some(v => Number.isFinite(v) && v > 20);
         if(anyRain){
           rainWrap.style.display = "block";
-          document.getElementById("rainMeta").textContent = `${start}–${end}`;
+          document.getElementById("rainMeta").textContent = "";
           drawLineGraphWithAxes(document.getElementById("rainSvg"), rains, xLabels, "%", "rgba(255,255,255,0.85)");
         }else{
           rainWrap.style.display = "none";
@@ -585,12 +585,13 @@
     setInterval(updateClock, 1000);
 
     loadWeatherAndGraphs();
-    setInterval(loadWeatherAndGraphs, 2 * 60 * 1000);
+    setInterval(loadWeatherAndGraphs, 5 * 60 * 1000);
 
     bustSatelliteCache();
-    setInterval(bustSatelliteCache, 5 * 60 * 1000);
+    setInterval(bustSatelliteCache, 30 * 60 * 1000);
 
     setTimeout(() => location.reload(), REFRESH_MINUTES * 60 * 1000);
   </script>
 </body>
 </html>
+
