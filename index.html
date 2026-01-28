@@ -25,7 +25,19 @@
     /* Hide cursor after inactivity */
     body.cursor-hidden{ cursor:none; }
 
-    /* Left column constrained (good for 1080x1920) */
+    /* Rotate whole UI 90° counter-clockwise */
+    .rot{
+      position:fixed;
+      top:0; left:0;
+      width:100vh;   /* swap because rotated */
+      height:100vw;
+      transform-origin: top left;
+      transform: rotate(-90deg) translateX(-100%);
+      background: var(--bg);
+      overflow:hidden;
+    }
+
+    /* Left column constrained (good for 1080x1920 before rotation) */
     .wrap{
       height:100%;
       box-sizing:border-box;
@@ -59,7 +71,7 @@
       text-align:left;
     }
 
-    /* Apple-ish compact weather (no box) */
+    /* Weather widget */
     .wxWidget{
       width:100%;
       display:flex;
@@ -126,7 +138,7 @@
       font-weight:600;
     }
 
-    /* Graphs (no boxes) */
+    /* Graphs */
     .graph{
       width:100%;
       margin-top:6px;
@@ -156,7 +168,7 @@
     }
     svg{width:100%;height:78px;display:block}
 
-    /* Satellite (no border box; constrained) */
+    /* Satellite */
     .sat{
       width:100%;
       margin-top:6px;
@@ -181,62 +193,60 @@
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="col">
-      <!-- Time (12-hour) -->
-      <div>
-        <div id="clock" class="clock">--:--</div>
-        <div id="date" class="date">---</div>
-      </div>
-
-      <!-- Weather widget -->
-      <div class="wxWidget">
-        <div class="wxLeft">
-          <div class="wxLoc">San Luis Obispo, CA</div>
-          <div id="wxTemp" class="wxTemp">--°</div>
-          <div id="wxDesc" class="wxDesc">Loading weather…</div>
-          <div id="wxUpdated" class="wxUpdated"></div>
+  <div class="rot">
+    <div class="wrap">
+      <div class="col">
+        <div>
+          <div id="clock" class="clock">--:--</div>
+          <div id="date" class="date">---</div>
         </div>
 
-        <div class="wxRight">
-          <div id="wxIcon" class="wxIcon" aria-label="Weather icon"></div>
-          <div class="wxHiLo">
-            <div>H: <strong id="wxHigh">--°</strong></div>
-            <div>L: <strong id="wxLow">--°</strong></div>
+        <div class="wxWidget">
+          <div class="wxLeft">
+            <div class="wxLoc">San Luis Obispo, CA</div>
+            <div id="wxTemp" class="wxTemp">--°</div>
+            <div id="wxDesc" class="wxDesc">Loading weather…</div>
+            <div id="wxUpdated" class="wxUpdated"></div>
+          </div>
+
+          <div class="wxRight">
+            <div id="wxIcon" class="wxIcon" aria-label="Weather icon"></div>
+            <div class="wxHiLo">
+              <div>H: <strong id="wxHigh">--°</strong></div>
+              <div>L: <strong id="wxLow">--°</strong></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Graphs -->
-      <div class="graph">
-        <div class="graphHeader">
-          <div class="graphLabel">Temperature (°F)</div>
-          <div id="tempMeta" class="graphMeta"></div>
+        <div class="graph">
+          <div class="graphHeader">
+            <div class="graphLabel">Temperature (°F)</div>
+            <div id="tempMeta" class="graphMeta"></div>
+          </div>
+          <svg id="tempSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
         </div>
-        <svg id="tempSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
-      </div>
 
-      <div class="graph">
-        <div class="graphHeader">
-          <div class="graphLabel">Surface wind (mph)</div>
-          <div id="windMeta" class="graphMeta"></div>
+        <div class="graph">
+          <div class="graphHeader">
+            <div class="graphLabel">Surface wind (mph)</div>
+            <div id="windMeta" class="graphMeta"></div>
+          </div>
+          <svg id="windSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
         </div>
-        <svg id="windSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
-      </div>
 
-      <div class="graph" id="rainWrap" style="display:none">
-        <div class="graphHeader">
-          <div class="graphLabel">Rain chance (%)</div>
-          <div id="rainMeta" class="graphMeta"></div>
+        <div class="graph" id="rainWrap" style="display:none">
+          <div class="graphHeader">
+            <div class="graphLabel">Rain chance (%)</div>
+            <div id="rainMeta" class="graphMeta"></div>
+          </div>
+          <svg id="rainSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
         </div>
-        <svg id="rainSvg" viewBox="0 0 1000 170" preserveAspectRatio="none"></svg>
-      </div>
 
-      <!-- Satellite -->
-      <div class="sat">
-        <img id="satImg"
-             alt="GOES-18 Satellite"
-             src="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg" />
+        <div class="sat">
+          <img id="satImg"
+               alt="GOES-18 Satellite"
+               src="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/20260280201_GOES18-ABI-psw-GEOCOLOR-2400x2400.jpg" />
+        </div>
       </div>
     </div>
   </div>
@@ -246,7 +256,7 @@
     const REFRESH_MINUTES = 5;
     const CURSOR_HIDE_MS = 1500;
 
-    // San Luis Obispo coords (from your NWS link)
+    // San Luis Obispo coords
     const LAT = 35.2858;
     const LON = -120.6627;
     const HOURS_TO_PLOT = 24;
@@ -283,7 +293,6 @@
 
     // ===== Helpers =====
     function parseWindMph(windSpeedStr){
-      // "5 mph", "5 to 10 mph", "10 mph"
       if(!windSpeedStr) return null;
       const nums = windSpeedStr.match(/\d+/g);
       if(!nums || nums.length === 0) return null;
@@ -307,43 +316,38 @@
       return document.createElementNS("http://www.w3.org/2000/svg", name);
     }
 
-    // ===== Minimal inline weather icons =====
+    // ===== Weather icons =====
     function iconSvg(kind){
       const common = `fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"`;
       if(kind === "sun"){
-        return `
-          <svg viewBox="0 0 24 24" class="wxIcon" aria-hidden="true">
-            <circle cx="12" cy="12" r="4.2" ${common}></circle>
-            <path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M4.7 4.7l1.6 1.6M17.7 17.7l1.6 1.6M19.3 4.7l-1.6 1.6M6.3 17.7l-1.6 1.6" ${common}></path>
-          </svg>`;
+        return `<svg viewBox="0 0 24 24" class="wxIcon" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2" ${common}></circle>
+          <path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M4.7 4.7l1.6 1.6M17.7 17.7l1.6 1.6M19.3 4.7l-1.6 1.6M6.3 17.7l-1.6 1.6" ${common}></path>
+        </svg>`;
       }
       if(kind === "cloud"){
-        return `
-          <svg viewBox="0 0 24 24" class="wxIcon" aria-hidden="true">
-            <path d="M7.5 18.5h9.0a4.0 4.0 0 0 0 0-8.0 5.5 5.5 0 0 0-10.7 1.7A3.5 3.5 0 0 0 7.5 18.5Z" ${common}></path>
-          </svg>`;
+        return `<svg viewBox="0 0 24 24" class="wxIcon" aria-hidden="true">
+          <path d="M7.5 18.5h9.0a4.0 4.0 0 0 0 0-8.0 5.5 5.5 0 0 0-10.7 1.7A3.5 3.5 0 0 0 7.5 18.5Z" ${common}></path>
+        </svg>`;
       }
       if(kind === "partly"){
-        return `
-          <svg viewBox="0 0 24 24" class="wxIcon" aria-hidden="true">
-            <path d="M9.5 7.5a4.0 4.0 0 0 1 5.6" ${common}></path>
-            <path d="M8.2 4.6l.9 1.7M6.0 7.5H4.1M8.2 10.4l-.9 1.7" ${common}></path>
-            <path d="M10.0 18.5h7.5a3.5 3.5 0 0 0 0-7.0 4.8 4.8 0 0 0-9.1 1.3" ${common}></path>
-          </svg>`;
+        return `<svg viewBox="0 0 24 24" class="wxIcon" aria-hidden="true">
+          <path d="M9.5 7.5a4.0 4.0 0 0 1 5.6" ${common}></path>
+          <path d="M8.2 4.6l.9 1.7M6.0 7.5H4.1M8.2 10.4l-.9 1.7" ${common}></path>
+          <path d="M10.0 18.5h7.5a3.5 3.5 0 0 0 0-7.0 4.8 4.8 0 0 0-9.1 1.3" ${common}></path>
+        </svg>`;
       }
       if(kind === "rain"){
-        return `
-          <svg viewBox="0 0 24 24" class="wxIcon" aria-hidden="true">
-            <path d="M7.2 15.0h9.3a3.6 3.6 0 0 0 0-7.2 5.1 5.1 0 0 0-10.0 1.5" ${common}></path>
-            <path d="M9 17.2l-1 2.0M13 17.2l-1 2.0M17 17.2l-1 2.0" ${common}></path>
-          </svg>`;
+        return `<svg viewBox="0 0 24 24" class="wxIcon" aria-hidden="true">
+          <path d="M7.2 15.0h9.3a3.6 3.6 0 0 0 0-7.2 5.1 5.1 0 0 0-10.0 1.5" ${common}></path>
+          <path d="M9 17.2l-1 2.0M13 17.2l-1 2.0M17 17.2l-1 2.0" ${common}></path>
+        </svg>`;
       }
       if(kind === "fog"){
-        return `
-          <svg viewBox="0 0 24 24" class="wxIcon" aria-hidden="true">
-            <path d="M7.2 12.5h9.3a3.6 3.6 0 0 0 0-7.2 5.1 5.1 0 0 0-10.0 1.5" ${common}></path>
-            <path d="M4 16h16M6 19h12" ${common}></path>
-          </svg>`;
+        return `<svg viewBox="0 0 24 24" class="wxIcon" aria-hidden="true">
+          <path d="M7.2 12.5h9.3a3.6 3.6 0 0 0 0-7.2 5.1 5.1 0 0 0-10.0 1.5" ${common}></path>
+          <path d="M4 16h16M6 19h12" ${common}></path>
+        </svg>`;
       }
       return iconSvg("cloud");
     }
@@ -468,7 +472,6 @@
       svg.appendChild(path);
     }
 
-    // ===== Hi/Lo from today's hourly temps =====
     function computeTodayHiLo(periods){
       const todayStr = new Date().toDateString();
       const todaysTemps = periods
@@ -484,7 +487,6 @@
       return { hi: Math.max(...base), lo: Math.min(...base) };
     }
 
-    // ===== Weather fetch + update =====
     async function loadWeatherAndGraphs(){
       try{
         const pointsUrl = `https://api.weather.gov/points/${LAT},${LON}`;
@@ -505,7 +507,7 @@
 
         const p0 = periods[0];
 
-        // Widget
+        // widget
         document.getElementById("wxTemp").textContent = `${p0.temperature}°`;
         document.getElementById("wxDesc").textContent = p0.shortForecast || "";
         document.getElementById("wxUpdated").textContent =
@@ -517,7 +519,7 @@
 
         document.getElementById("wxIcon").innerHTML = iconSvg(pickIcon(p0.shortForecast));
 
-        // Graph data
+        // graphs
         const xLabels = periods.map(p => hourLabel(p.startTime));
         const temps = periods.map(p => Number.isFinite(p.temperature) ? p.temperature : null);
         const winds = periods.map(p => parseWindMph(p.windSpeed));
@@ -544,6 +546,7 @@
         }else{
           rainWrap.style.display = "none";
         }
+
       }catch(err){
         document.getElementById("wxDesc").textContent = "Weather unavailable";
         document.getElementById("wxUpdated").textContent = "";
@@ -551,7 +554,7 @@
       }
     }
 
-    // ===== Init =====
+    // Init
     updateClock();
     setInterval(updateClock, 1000);
 
